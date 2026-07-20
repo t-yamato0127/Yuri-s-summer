@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="なつやすみ">
+<title>ゆりちゃんの なつやすみ だいさくせん</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+  html,body { height:100%; }
+  body {
+    font-family:"Hiragino Maru Gothic ProN","BIZ UDGothic","Yu Gothic UI",-apple-system,sans-serif;
+    background:linear-gradient(180deg,#bfe9ff 0%,#e8f9ff 45%,#fffbe0 100%);
+    background-attachment:fixed;
+    color:#37474f;
+    padding-bottom:calc(84px + env(safe-area-inset-bottom));
+    user-select:none; -webkit-user-select:none;
+  }
+  header {
+    padding:14px 16px 8px; text-align:center; position:relative;
+  }
+  header h1 { font-size:21px; color:#ff7043; text-shadow:0 2px 0 #fff; letter-spacing:1px; }
+  header .sub { font-size:14px; color:#607d8b; margin-top:4px; }
+  #gear {
+    position:absolute; right:10px; top:10px; font-size:20px; background:#ffffffaa;
+    border:none; border-radius:50%; width:40px; height:40px; cursor:pointer;
+  }
+  /* 接続状態バッジ（v2で追加：☁️どうき中／✅ほぞんした／📴オフライン／🏠ローカル） */
+  #syncStatus {
+    position:absolute; left:10px; top:12px; font-size:11px; color:#607d8b;
+    background:#ffffffcc; border-radius:12px; padding:3px 9px; font-weight:bold;
+    max-width:132px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    line-height:1.4;
+  }
+  main { padding:6px 14px 20px; max-width:640px; margin:0 auto; }
+  .card {
+    background:#fff; border-radius:20px; padding:14px 16px; margin:10px 0;
+    box-shadow:0 4px 10px rgba(0,60,120,.10);
+  }
+  .sec-title { font-size:17px; font-weight:bold; color:#0288a7; margin:16px 2px 4px; }
+  .task { display:flex; align-items:center; gap:12px; }
+  .task .emoji { font-size:34px; width:44px; text-align:center; }
+  .task .name { flex:1; font-size:19px; font-weight:bold; }
+  .task .meta { font-size:13px; color:#78909c; font-weight:normal; margin-top:2px; }
+  .btn {
+    border:none; border-radius:16px; cursor:pointer; font-family:inherit; font-weight:bold;
+  }
+  .btn-do {
+    background:linear-gradient(180deg,#ffb74d,#ff8a3d); color:#fff; font-size:17px;
+    padding:12px 16px; min-width:112px; min-height:52px; box-shadow:0 3px 0 #e57028;
+  }
+  .btn-do:active { transform:translateY(2px); box-shadow:0 1px 0 #e57028; }
+  .done-badge { font-size:15px; color:#43a047; font-weight:bold; text-align:center; min-width:112px; }
+  .undo { display:block; font-size:11px; color:#b0bec5; background:none; border:none; margin:4px auto 0; cursor:pointer; }
+  .bar { background:#eceff1; border-radius:8px; height:14px; overflow:hidden; margin-top:8px; }
+  .bar > div { height:100%; background:linear-gradient(90deg,#4fc3f7,#26c6da); border-radius:8px; transition:width .4s; }
+  .banner {
+    text-align:center; background:#fff3cd; border:2px dashed #ffc107; border-radius:16px;
+    padding:10px; margin:10px 0; font-size:16px; font-weight:bold; color:#a06a00;
+  }
+  /* nav */
+  nav {
+    position:fixed; bottom:0; left:0; right:0; display:flex; z-index:50;
+    background:#ffffffee; backdrop-filter:blur(6px); border-top:1px solid #cfd8dc;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  nav button {
+    flex:1; background:none; border:none; padding:9px 0 7px; font-family:inherit; cursor:pointer;
+    font-size:12px; color:#90a4ae; font-weight:bold;
+  }
+  nav button .ic { display:block; font-size:25px; margin-bottom:2px; filter:grayscale(1) opacity(.55); }
+  nav button.on { color:#ff7043; }
+  nav button.on .ic { filter:none; }
+  /* calendar */
+  .cal-head { display:flex; align-items:center; justify-content:space-between; margin:8px 0; }
+  .cal-head .m { font-size:20px; font-weight:bold; color:#0288a7; }
+  .cal-head button { font-size:20px; border:none; background:#fff; border-radius:12px; width:44px; height:40px; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,.1); }
+  table.cal { width:100%; border-collapse:collapse; background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 4px 10px rgba(0,60,120,.10); }
+  .cal th { font-size:12px; padding:7px 0; color:#78909c; background:#f5fbff; }
+  .cal th.su { color:#ef5350; } .cal th.sa { color:#42a5f5; }
+  .cal td {
+    width:14.28%; height:62px; vertical-align:top; text-align:center; border:1px solid #f0f4f7;
+    font-size:13px; padding:3px 1px; cursor:pointer;
+  }
+  .cal td .d { font-weight:bold; }
+  .cal td.out { color:#cfd8dc; background:#fafafa; cursor:default; }
+  .cal td.today { background:#fff8dc; outline:2px solid #ffca28; outline-offset:-2px; border-radius:4px; }
+  .cal td .mk { font-size:15px; line-height:1.15; display:block; }
+  /* stamps */
+  .stamp-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+  .slot {
+    aspect-ratio:1; background:#fff; border-radius:14px; display:flex; align-items:center; justify-content:center;
+    font-size:30px; box-shadow:inset 0 0 0 2px #e3f2fd;
+  }
+  .slot.empty { color:#eceff1; font-size:18px; }
+  .slot.goal { box-shadow:inset 0 0 0 2px #ffd54f; background:#fffde7; font-size:22px; }
+  .big-num { font-size:44px; font-weight:bold; color:#ff7043; }
+  .center { text-align:center; }
+  /* rewards */
+  .rw { display:flex; align-items:center; gap:12px; }
+  .rw .emoji { font-size:36px; width:46px; text-align:center; }
+  .rw.locked { opacity:.55; filter:grayscale(.6); }
+  .rw .st { font-size:13px; color:#78909c; }
+  .got { color:#43a047; font-weight:bold; font-size:15px; }
+  /* overlay stamp */
+  #ovl {
+    position:fixed; inset:0; background:rgba(255,255,255,.75); z-index:100; display:none;
+    align-items:center; justify-content:center; flex-direction:column; text-align:center;
+  }
+  #ovl.show { display:flex; }
+  #ovl .big { font-size:110px; animation:pop .5s cubic-bezier(.2,2.2,.4,1); }
+  #ovl .msg { font-size:24px; font-weight:bold; color:#ff7043; margin-top:8px; animation:rise .5s .1s both; }
+  @keyframes pop { 0%{transform:scale(0) rotate(-20deg);} 100%{transform:scale(1) rotate(0);} }
+  @keyframes rise { 0%{opacity:0; transform:translateY(14px);} 100%{opacity:1; transform:none;} }
+  .cf { position:fixed; top:-40px; font-size:24px; z-index:99; animation:fall 1.6s linear forwards; pointer-events:none; }
+  @keyframes fall { to { transform:translateY(105vh) rotate(360deg); opacity:.8; } }
+  /* modal */
+  #modal {
+    position:fixed; inset:0; background:rgba(30,50,70,.45); z-index:110; display:none;
+    align-items:flex-start; justify-content:center; overflow:auto; padding:30px 14px;
+  }
+  #modal.show { display:flex; }
+  #modal .box { background:#fff; border-radius:18px; padding:18px; width:100%; max-width:460px; }
+  #modal h3 { color:#0288a7; margin-bottom:12px; font-size:17px; }
+  #modal label { display:block; font-size:13px; color:#607d8b; margin:10px 0 3px; }
+  #modal input, #modal textarea, #modal select {
+    width:100%; font-size:16px; padding:9px 10px; border:1.5px solid #b0bec5; border-radius:10px; font-family:inherit;
+  }
+  #modal textarea { height:150px; }
+  .emoji-row { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+  .emoji-row button { font-size:22px; background:#f5f5f5; border:none; border-radius:8px; padding:4px 7px; cursor:pointer; }
+  .m-btns { display:flex; gap:10px; margin-top:16px; }
+  .m-btns .btn { flex:1; padding:12px; font-size:15px; }
+  .btn-ok { background:#26a69a; color:#fff; }
+  .btn-cancel { background:#eceff1; color:#546e7a; }
+  .btn-danger { background:#ef5350; color:#fff; }
+  /* parent */
+  .p-item { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid #f0f4f7; font-size:14px; }
+  .p-item .t { flex:1; }
+  .p-item button { border:none; border-radius:8px; padding:7px 10px; cursor:pointer; font-size:12px; }
+  .p-edit { background:#e3f2fd; color:#1565c0; } .p-del { background:#ffebee; color:#c62828; }
+  .p-add { width:100%; padding:11px; margin-top:8px; background:#e0f2f1; color:#00695c; border:none; border-radius:12px; font-size:14px; font-weight:bold; cursor:pointer; }
+  .p-note { font-size:12px; color:#90a4ae; margin:6px 2px; line-height:1.6; }
+  /* family code gate（v2で追加） */
+  .gate-code { font-size:26px; font-weight:bold; letter-spacing:2px; color:#ff7043; margin:14px 0; word-break:break-all; }
+  .gate-btn { width:100%; padding:14px; margin-top:10px; border:none; border-radius:14px; font-size:16px; font-weight:bold; cursor:pointer; font-family:inherit; }
+  .gate-primary { background:linear-gradient(180deg,#ffb74d,#ff8a3d); color:#fff; box-shadow:0 3px 0 #e57028; }
+  .gate-second { background:#e0f2f1; color:#00695c; }
+</style>
+</head>
+<body>
+
+<header>
+  <div id="syncStatus" aria-live="polite"></div>
+  <h1 id="appTitle">🌻 なつやすみ だいさくせん 🌻</h1>
+  <div class="sub" id="subDate"></div>
+  <button id="gear" onclick="openPin()" aria-label="保護者メニュー">⚙️</button>
+</header>
+
+<main id="view"></main>
+
+<nav id="nav">
+  <button data-tab="today" onclick="setTab('today')"><span class="ic">🌞</span>きょう</button>
+  <button data-tab="cal" onclick="setTab('cal')"><span class="ic">📅</span>カレンダー</button>
+  <button data-tab="stamp" onclick="setTab('stamp')"><span class="ic">⭐</span>スタンプ</button>
+  <button data-tab="reward" onclick="setTab('reward')"><span class="ic">🎁</span>ごほうび</button>
+</nav>
+
+<div id="ovl" onclick="hideOvl()"></div>
+<div id="modal"><div class="box" id="modalBox"></div></div>
+
+<script>
+'use strict';
+/* =====================================================================
+   ゆりちゃんの なつやすみ だいさくせん（v2 ／ Firebase 同期版）
+   - v1（プロトタイプ）の全機能・全画面・全デザインをそのまま維持しています。
+   - FIREBASE_CONFIG が未設定なら v1 と完全に同じ「ローカルモード」で動作します
+     （localStorage のみ・ネットワークアクセスなし）。
+   - FIREBASE_CONFIG を設定すると「クラウドモード」になり、家族コードで
+     ゆりちゃんのiPadと保護者端末のデータが Firestore 経由で同期されます。
+     Firebase SDK は classic script 内から dynamic import() で読み込みます
+     （クラウドモード時のみ）。
+   ===================================================================== */
+
+/* =====================================================================
+   ▼▼▼ おうちの人へ：ここに Firebase の firebaseConfig を貼り付けてください ▼▼▼
+   ・クラウド同期を使わないときは、この {} の中身は空のままでOKです
+     （その場合はこの端末だけで動く「ローカルモード」になります）。
+   ・貼り付け方は setup-guide.md を参照してください。
+     apiKey と projectId の両方があるときだけ、クラウドモードで起動します。
+   例）
+     var FIREBASE_CONFIG = {
+    apiKey: "AIzaSyAAazjQi0QKZLRNQr5hkewc7nxmu8I1qto",
+    authDomain: "yuri-s-summer-vacation.firebaseapp.com",
+    projectId: "yuri-s-summer-vacation",
+    storageBucket: "yuri-s-summer-vacation.firebasestorage.app",
+    messagingSenderId: "263142396273",
+    appId: "1:263142396273:web:05448c9a9aa4af6b9ea6d0"
+     };
+   ===================================================================== */
+var FIREBASE_CONFIG = {
+  /* ここに firebaseConfig を貼り付け（空のままならローカルモード） */
+};
+
+/* Firebase SDK（gstatic CDN）のバージョン。設計書 §2 準拠。 */
+var FB_VER = '12.16.0';
+var FB_BASE = 'https://www.gstatic.com/firebasejs/' + FB_VER + '/';
+
+/* 設定があるか＝クラウドモードで動くか の判定（apiKey と projectId の存在で判定） */
+function hasConfig(){
+  return !!(FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.projectId);
+}
+
+/* ---------- ローカル保存（v1と同一のキー・構造） ---------- */
+var KEY = 'yuri_natsu_v1';
+var Store = {
+  load: function(){ try { var s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch(e){ return null; } },
+  save: function(d){ try { localStorage.setItem(KEY, JSON.stringify(d)); } catch(e){} }
+};
+
+/* ---------- 家族コード（capability token 方式） ---------- */
+var FAMILY_KEY = 'yuri_family_code';   /* 家族コードの保存先 */
+var MODE_KEY   = 'yuri_mode';          /* 'local' のときはクラウド設定があってもローカル固定 */
+
+function getFamilyCode(){ try { return localStorage.getItem(FAMILY_KEY) || ''; } catch(e){ return ''; } }
+function setFamilyCode(code){ try { localStorage.setItem(FAMILY_KEY, code); localStorage.removeItem(MODE_KEY); } catch(e){} }
+function isLocalOnly(){ try { return localStorage.getItem(MODE_KEY) === 'local'; } catch(e){ return false; } }
+function setLocalOnly(){ try { localStorage.setItem(MODE_KEY, 'local'); } catch(e){} }
+
+/* この端末で実際にクラウド同期が有効か（設定あり・ローカル固定でない・正しいコードがある） */
+function cloudActive(){ return hasConfig() && !isLocalOnly() && isValidFamilyCode(getFamilyCode()); }
+
+/* 家族コード生成：'yuri-' + 英小文字/数字4字 ×3グループ（紛らわしい l,1,o,0 を除外） */
+function genFamilyCode(){
+  var abc = 'abcdefghijkmnpqrstuvwxyz23456789'; /* l,o,0,1 を除外 */
+  function grp(){
+    var s = '';
+    for (var i=0;i<4;i++) s += abc.charAt(Math.floor(Math.random() * abc.length));
+    return s;
+  }
+  return 'yuri-' + grp() + '-' + grp() + '-' + grp();
+}
+/* 家族コードの形式チェック（yuri-xxxx-xxxx-xxxx ／各グループは a-z2-9 の4文字） */
+function isValidFamilyCode(s){
+  return typeof s === 'string' && /^yuri-[a-z2-9]{4}-[a-z2-9]{4}-[a-z2-9]{4}$/.test(s);
+}
+
+/* ---------- 日付ユーティリティ ---------- */
+function pad(n){ return (n<10?'0':'')+n; }
+function fmt(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function parseYmd(s){ var a=s.split('-'); return new Date(+a[0], +a[1]-1, +a[2]); }
+function todayStr(){ return fmt(new Date()); }
+function daysBetween(a, b){ return Math.round((parseYmd(b) - parseYmd(a)) / 86400000); }
+var WD = ['にちようび','げつようび','かようび','すいようび','もくようび','きんようび','どようび'];
+function jpDate(s){ var d=parseYmd(s); return (d.getMonth()+1)+'がつ '+d.getDate()+'にち（'+WD[d.getDay()]+'）'; }
+function jpDateShort(s){ var d=parseYmd(s); return (d.getMonth()+1)+'/'+d.getDate(); }
+
+/* ---------- 初期データ（典型的な小1の夏休み想定・保護者モードで変更可） ---------- */
+function seed(){
+  return {
+    settings: { childName:'ゆり', start:'2026-07-18', end:'2026-08-31', pin:'1234' },
+    daily: [
+      { id:'d1', emoji:'📖', title:'おんどく' },
+      { id:'d2', emoji:'🌻', title:'あさがおの みずやり' },
+      { id:'d3', emoji:'🔢', title:'けいさんカード' }
+    ],
+    projects: [
+      { id:'p1', emoji:'📝', title:'こくごプリント', target:20, done:0, due:'2026-08-31' },
+      { id:'p2', emoji:'✏️', title:'さんすうプリント', target:20, done:0, due:'2026-08-31' },
+      { id:'p3', emoji:'🎨', title:'えにっき', target:3, done:0, due:'2026-08-31' },
+      { id:'p4', emoji:'🔬', title:'じゆうけんきゅう', target:1, done:0, due:'2026-08-25' },
+      { id:'p5', emoji:'📚', title:'ほんを よむ', target:5, done:0, due:'2026-08-31' }
+    ],
+    events: [
+      { id:'e1', date:'2026-07-25', emoji:'🏮', title:'なつまつり' },
+      { id:'e2', date:'2026-08-02', emoji:'🏊', title:'プール' },
+      { id:'e3', date:'2026-08-10', emoji:'🚗', title:'おばあちゃんち' },
+      { id:'e4', date:'2026-08-20', emoji:'🎆', title:'はなびたいかい' }
+    ],
+    rewards: [
+      { id:'r1', need:10, emoji:'🍦', title:'アイスクリーム' },
+      { id:'r2', need:25, emoji:'🍰', title:'ケーキやさん' },
+      { id:'r3', need:40, emoji:'🎡', title:'ゆうえんち' },
+      { id:'r4', need:60, emoji:'🧸', title:'おもちゃ ひとつ' }
+    ],
+    log: {},      /* { 'YYYY-MM-DD': ['d1','d2', ...] } 毎日の宿題の達成記録 */
+    stamps: 0     /* たまったスタンプ合計 */
+  };
+}
+
+var D = null;
+var curTab = 'today';
+var calY = 0, calM = 0; /* カレンダー表示中の年月 */
+var STAMP_POOL = ['⭐','🌟','🌻','🍉','🐬','🍧','🎐','🦀','🌈','🍦','🐠','🍇'];
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function uid(){ return 'x' + Date.now().toString(36) + Math.floor(Math.random()*1000).toString(36); }
+
+/* 保存：localStorage（キャッシュ）へ即時保存し、クラウドモードなら 800ms デバウンスで送信 */
+function save(){
+  if (cloudActive()) D.updatedAt = Date.now();
+  Store.save(D);
+  scheduleSave();
+}
+
+/* ---------- 同期状態バッジ ---------- */
+function setSyncStatus(st){
+  Cloud.status = st;
+  if (typeof document === 'undefined' || !document.getElementById) return;
+  var el = document.getElementById('syncStatus');
+  if (!el) return;
+  var map = { local:'🏠 ローカル', connecting:'☁️ どうき中', synced:'✅ ほぞんした', offline:'📴 オフライン' };
+  el.textContent = map[st] || '';
+}
+
+/* タイトル更新 */
+function setTitle(){
+  if (typeof document === 'undefined' || !document.getElementById) return;
+  var el = document.getElementById('appTitle');
+  if (el && D && D.settings) el.textContent = '🌻 ' + D.settings.childName + 'ちゃんの なつやすみ だいさくせん 🌻';
+}
+
+/* 現在のタブだけを再描画（モーダルDOMには触らない） */
+function renderTab(){
+  if (typeof document === 'undefined' || !document.getElementById) return;
+  var v = document.getElementById('view');
+  if (!v) return;
+  if (curTab==='today') v.innerHTML = viewToday();
+  else if (curTab==='cal') v.innerHTML = viewCal();
+  else if (curTab==='stamp') v.innerHTML = viewStamps();
+  else if (curTab==='reward') v.innerHTML = viewRewards();
+  else if (curTab==='parent') v.innerHTML = viewParent();
+}
+
+/* 800ms デバウンスでクラウドへ送信（ローカルモードでは何もしない＝ネットワークアクセスなし） */
+function scheduleSave(){
+  if (!cloudActive() || !Cloud.enabled) return;
+  try {
+    clearTimeout(Cloud.saveTimer);
+    Cloud.saveTimer = setTimeout(function(){ try { Cloud.push(D); } catch(e){ console.warn(e); } }, 800);
+  } catch(e){ console.warn(e); }
+}
+
+/* =====================================================================
+   同期層：グローバル object Cloud（テスト時に差し替え可能）
+   - enabled:このモードでクラウド同期する / ready:SDK接続済み / status:表示状態
+   - start(): init から呼ばれる。hasConfig()=false（またはコード未設定）なら何もしない。
+   - push(data): 全状態を1ドキュメントに setDoc（updatedAt 付与）。
+   - stop(): 購読解除。
+   ===================================================================== */
+var Cloud = {
+  enabled:false, ready:false, loading:false, migrated:false, firstSnap:true,
+  status:'local',
+  app:null, auth:null, db:null, docRef:null, unsub:null, saveTimer:null, fns:null,
+
+  start: function(){
+    try {
+      /* ローカルモード（設定なし／ローカル固定／コード未設定）は一切ネットワークに触れない */
+      if (!hasConfig() || isLocalOnly()) return;
+      var code = getFamilyCode();
+      if (!isValidFamilyCode(code)) return;
+
+      Cloud.enabled = true;
+      setSyncStatus('connecting');
+
+      /* 既に接続済みなら（家族コード変更など）購読だけやり直す */
+      if (Cloud.ready && Cloud.db){ Cloud.subscribe(code); return; }
+      if (Cloud.loading) return;
+      Cloud.loading = true;
+
+      /* Firebase SDK は「クラウドモード時のみ」dynamic import() で読み込む */
+      Promise.all([
+        import(FB_BASE + 'firebase-app.js'),
+        import(FB_BASE + 'firebase-auth.js'),
+        import(FB_BASE + 'firebase-firestore.js')
+      ]).then(function(m){
+        Cloud.fns = { app:m[0], auth:m[1], fs:m[2] };
+        Cloud.app = m[0].initializeApp(FIREBASE_CONFIG);
+        /* オフラインキャッシュ有効化。失敗しても警告のみで続行 */
+        try {
+          Cloud.db = m[2].initializeFirestore(Cloud.app, { localCache: m[2].persistentLocalCache({}) });
+        } catch(e){
+          console.warn('persistentLocalCache 無効・通常キャッシュで続行:', e);
+          Cloud.db = m[2].getFirestore(Cloud.app);
+        }
+        Cloud.auth = m[1].getAuth(Cloud.app);
+        return m[1].signInAnonymously(Cloud.auth); /* 匿名サインイン（ユーザー操作不要） */
+      }).then(function(){
+        Cloud.ready = true;
+        Cloud.loading = false;
+        Cloud.subscribe(getFamilyCode());
+      }).catch(function(err){
+        Cloud.loading = false;
+        console.warn('クラウド接続に失敗（ローカルキャッシュで続行）:', err);
+        setSyncStatus('offline');
+      });
+    } catch(e){ console.warn('Cloud.start error:', e); setSyncStatus('offline'); }
+  },
+
+  subscribe: function(code){
+    try {
+      if (!Cloud.db || !Cloud.fns || !isValidFamilyCode(code)) return;
+      var fs = Cloud.fns.fs;
+      if (Cloud.unsub){ try { Cloud.unsub(); } catch(e){} Cloud.unsub = null; }
+      Cloud.docRef = fs.doc(Cloud.db, 'families', code);
+      Cloud.firstSnap = true;
+      Cloud.unsub = fs.onSnapshot(Cloud.docRef,
+        function(snap){
+          try {
+            /* 自端末の書込みエコー（保留中の書込み）は無視する */
+            if (snap.metadata && snap.metadata.hasPendingWrites) return;
+            if (!snap.exists()){
+              /* クラウド側にドキュメントが無い。サーバ確定を待ってから移行判定 */
+              if (snap.metadata && snap.metadata.fromCache) return;
+              Cloud.firstSnap = false;
+              Cloud.maybeMigrate();
+              return;
+            }
+            var data = snap.data();
+            /* 初回受信：ローカルの方が新しければ（接続前/オフライン中の編集）ローカルを優先して送信 */
+            if (Cloud.firstSnap){
+              Cloud.firstSnap = false;
+              var lt = (D && D.updatedAt) || 0, rt = data.updatedAt || 0;
+              if (lt > rt){ Cloud.push(D); setSyncStatus('synced'); return; }
+            }
+            applyRemote(data);
+            setSyncStatus('synced');
+          } catch(e){ console.warn('snapshot handler error:', e); }
+        },
+        function(err){
+          console.warn('onSnapshot error:', err);
+          // エラー時は誤って✅を出さず📴表示（設定ミス検知のため）
+          setSyncStatus('offline');
+        }
+      );
+    } catch(e){ console.warn('Cloud.subscribe error:', e); }
+  },
+
+  /* クラウド側が未存在のとき：旧v1データがあればクラウドへの引き継ぎを提案し、ドキュメントを作成 */
+  maybeMigrate: function(){
+    try {
+      if (Cloud.migrated){ Cloud.push(D); return; }
+      Cloud.migrated = true;
+      var local = null;
+      try { local = Store.load(); } catch(e){}
+      var hasOld = local && local.settings && local.daily;
+      if (hasOld){
+        var ok = false;
+        try { ok = confirm('この端末のデータをクラウドに引き継ぎますか？'); } catch(e){ ok = true; }
+        D = ok ? local : seed();
+      } else {
+        D = D || seed();
+      }
+      Store.save(D);
+      Cloud.push(D);
+      setSyncStatus('synced');
+      setTitle();
+      renderTab();
+    } catch(e){ console.warn('maybeMigrate error:', e); }
+  },
+
+  push: function(data){
+    try {
+      if (!Cloud.enabled || !Cloud.ready || !Cloud.db || !Cloud.docRef || !Cloud.fns || !data) return;
+      data.updatedAt = Date.now();
+      setSyncStatus('connecting');
+      Cloud.fns.fs.setDoc(Cloud.docRef, data).then(
+        function(){ setSyncStatus('synced'); },
+        function(err){
+          console.warn('setDoc failed:', err);
+          // エラー時は誤って✅を出さず📴表示（設定ミス検知のため）
+          setSyncStatus('offline');
+        }
+      );
+    } catch(e){ console.warn('Cloud.push error:', e); }
+  },
+
+  stop: function(){
+    try { if (Cloud.unsub) Cloud.unsub(); } catch(e){}
+    Cloud.unsub = null;
+    Cloud.ready = false;
+    Cloud.enabled = false;
+    Cloud.docRef = null;
+    Cloud.firstSnap = true;
+    try { clearTimeout(Cloud.saveTimer); } catch(e){}
+  }
+};
+
+/* オンライン/オフラインの検知（navigator.onLine と online/offline イベント） */
+if (typeof window !== 'undefined' && window.addEventListener){
+  window.addEventListener('online', function(){
+    if (Cloud.enabled){ setSyncStatus('connecting'); try { scheduleSave(); } catch(e){} }
+  });
+  window.addEventListener('offline', function(){
+    if (Cloud.enabled){ setSyncStatus('offline'); }
+  });
+}
+
+/* クラウドからの受信を反映：D を差し替え→ローカルキャッシュ更新→現在タブ再描画（モーダルは触らない） */
+function applyRemote(data){
+  if (!data || typeof data !== 'object') return;
+  D = data;
+  try { Store.save(D); } catch(e){}   /* オフライン起動用のキャッシュを更新 */
+  if (typeof document === 'undefined' || !document.getElementById) return;
+  try { setTitle(); clampCal(); renderTab(); } catch(e){ console.warn(e); }
+}
+
+/* ---------- 起動 ---------- */
+function init(){
+  D = Store.load() || seed();
+  var t = new Date();
+  calY = t.getFullYear(); calM = t.getMonth()+1;
+  clampCal();
+  setTitle();
+
+  if (!hasConfig() || isLocalOnly()){
+    /* ローカルモード：v1と完全同一動作（localStorage のみ・ネットワークなし） */
+    save();
+    setSyncStatus('local');
+    setTab('today');
+  } else {
+    var code = getFamilyCode();
+    if (code && isValidFamilyCode(code)){
+      /* コードあり：まずキャッシュを表示（オフラインでも起動可）→同期開始 */
+      setTab('today');
+    } else {
+      /* コード未設定：家族コード画面を表示 */
+      setSyncStatus('local');
+      showFamilyGate();
+    }
+  }
+  /* Cloud.start() は init 内から呼ぶ。ローカルモード/コード未設定なら何もしない */
+  try { Cloud.start(); } catch(e){ console.warn(e); }
+}
+
+/* ---------- 家族コード画面（保護者向け・漢字可） ---------- */
+function showFamilyGate(){
+  if (typeof document === 'undefined') return;
+  var h = '<div class="card center">'
+    + '<div style="font-size:44px">🌻☁️</div>'
+    + '<h3 style="color:#0288a7;margin:8px 0 4px">かぞくで つかう じゅんび</h3>'
+    + '<div class="p-note" style="text-align:center">おうちの人と いっしょに えらんでね</div>'
+    + '<button class="gate-btn gate-primary" onclick="gateNew()">はじめて つかう（あたらしく コードを つくる）</button>'
+    + '<button class="gate-btn gate-second" onclick="gateJoin()">コードを もっている（いれる）</button>'
+    + '<button class="undo" style="margin-top:16px;font-size:12px" onclick="gateLocal()">この端末だけで使う（ローカルモード）</button>'
+    + '</div>';
+  var v = document.getElementById('view');
+  if (v) v.innerHTML = h;
+}
+function gateNew(){
+  var code = genFamilyCode();
+  var h = '<div class="card center">'
+    + '<h3 style="color:#0288a7">あたらしい かぞくコード</h3>'
+    + '<div class="p-note" style="text-align:center">おうちの人が控えてください<br>（ほかの きかいで つかいます）</div>'
+    + '<div class="gate-code">' + esc(code) + '</div>'
+    + '<button class="gate-btn gate-primary" onclick="gateConfirmNew(\'' + code + '\')">このコードで はじめる</button>'
+    + '<button class="undo" style="margin-top:12px" onclick="showFamilyGate()">もどる</button>'
+    + '</div>';
+  document.getElementById('view').innerHTML = h;
+}
+function gateConfirmNew(code){
+  setFamilyCode(code);
+  setSyncStatus('connecting');
+  setTab('today');
+  try { Cloud.start(); } catch(e){ console.warn(e); }
+}
+function gateJoin(){
+  openModal('<h3>かぞくコードを いれる</h3>'
+    + '<label>コード（れい yuri-k8x2-p4mq-7d3n）</label>'
+    + '<input id="fcIn" type="text" autocapitalize="none" autocomplete="off" spellcheck="false" placeholder="yuri-xxxx-xxxx-xxxx">'
+    + '<div class="m-btns"><button class="btn btn-cancel" onclick="closeModal()">キャンセル</button>'
+    + '<button class="btn btn-ok" onclick="gateJoinOk()">つなぐ</button></div>');
+  setTimeout(function(){ var el=document.getElementById('fcIn'); if(el) el.focus(); }, 50);
+}
+function gateJoinOk(){
+  var v = (document.getElementById('fcIn').value || '').trim().toLowerCase();
+  if (!isValidFamilyCode(v)){ alert('コードの かたちが ちがうみたい。\n（れい yuri-k8x2-p4mq-7d3n）'); return; }
+  setFamilyCode(v);
+  closeModal();
+  setSyncStatus('connecting');
+  setTab('today');
+  try { Cloud.start(); } catch(e){ console.warn(e); }
+}
+function gateLocal(){
+  setLocalOnly();
+  save();
+  setSyncStatus('local');
+  setTab('today');
+}
+
+/* ---------- タブ切替 ---------- */
+function setTab(tab){
+  curTab = tab;
+  var btns = document.querySelectorAll('#nav button');
+  for (var i=0;i<btns.length;i++) btns[i].classList.toggle('on', btns[i].getAttribute('data-tab')===tab);
+  var sub = document.getElementById('subDate');
+  if (sub) sub.textContent = 'きょうは ' + jpDate(todayStr());
+  renderTab();
+  window.scrollTo(0,0);
+}
+
+/* ---------- きょう ---------- */
+function daysLeftBanner(){
+  var t = todayStr();
+  if (t < D.settings.start) return '<div class="banner">なつやすみまで あと ' + daysBetween(t, D.settings.start) + 'にち！</div>';
+  if (t > D.settings.end) return '<div class="banner">なつやすみは おしまい。よくがんばりました！🎉</div>';
+  return '<div class="banner">🍉 なつやすみは あと ' + daysBetween(t, D.settings.end) + 'にち 🍉</div>';
+}
+function todaysEventsHtml(){
+  var t = todayStr(), h = '';
+  for (var i=0;i<D.events.length;i++){
+    var e = D.events[i];
+    if (e.date === t) h += '<div class="card task"><span class="emoji">'+e.emoji+'</span><div class="name">きょうは「'+esc(e.title)+'」だよ！</div></div>';
+  }
+  return h ? '<div class="sec-title">🎪 きょうの おたのしみ</div>'+h : '';
+}
+function viewToday(){
+  var t = todayStr();
+  var doneList = D.log[t] || [];
+  var h = daysLeftBanner() + todaysEventsHtml();
+
+  h += '<div class="sec-title">🌞 まいにちの しゅくだい</div>';
+  var allDone = D.daily.length > 0;
+  for (var i=0;i<D.daily.length;i++){
+    var d = D.daily[i];
+    var done = doneList.indexOf(d.id) >= 0;
+    if (!done) allDone = false;
+    h += '<div class="card task"><span class="emoji">'+d.emoji+'</span>'
+       + '<div class="name">'+esc(d.title)+'</div>'
+       + (done
+          ? '<div><div class="done-badge">✅ できた！</div><button class="undo" onclick="undoDaily(\''+d.id+'\')">とりけす</button></div>'
+          : '<button class="btn btn-do" onclick="doDaily(\''+d.id+'\')">できた！</button>')
+       + '</div>';
+  }
+  if (allDone && D.daily.length) h += '<div class="banner">💮 きょうの しゅくだい ぜんぶ できたね！すごい！</div>';
+
+  h += '<div class="sec-title">📚 おおきな しゅくだい</div>';
+  for (var j=0;j<D.projects.length;j++){
+    var p = D.projects[j];
+    var fin = p.done >= p.target;
+    var pct = Math.min(100, Math.round(p.done / p.target * 100));
+    h += '<div class="card"><div class="task"><span class="emoji">'+p.emoji+'</span>'
+       + '<div class="name">'+esc(p.title)
+       + '<div class="meta">'+p.done+' / '+p.target+'　しめきり '+jpDateShort(p.due)+'</div></div>'
+       + (fin
+          ? '<div class="done-badge">🎉 かんせい！</div>'
+          : '<button class="btn btn-do" onclick="doProject(\''+p.id+'\')">１かい やった！</button>')
+       + '</div><div class="bar"><div style="width:'+pct+'%"></div></div></div>';
+  }
+  return h;
+}
+function doDaily(id){
+  var t = todayStr();
+  if (!D.log[t]) D.log[t] = [];
+  if (D.log[t].indexOf(id) >= 0) return;
+  D.log[t].push(id);
+  addStamps(1);
+  save(); setTab('today');
+}
+function undoDaily(id){
+  if (!confirm('とりけしますか？（スタンプが 1こ へります）')) return;
+  var t = todayStr(), arr = D.log[t] || [];
+  var k = arr.indexOf(id);
+  if (k >= 0){ arr.splice(k,1); D.stamps = Math.max(0, D.stamps-1); }
+  save(); setTab('today');
+}
+function doProject(id){
+  for (var i=0;i<D.projects.length;i++){
+    var p = D.projects[i];
+    if (p.id === id && p.done < p.target){
+      p.done++;
+      addStamps(1, p.done >= p.target);
+      break;
+    }
+  }
+  save(); setTab('today');
+}
+
+/* ---------- スタンプ・ごほうび判定 ---------- */
+function addStamps(n, big){
+  var before = D.stamps;
+  D.stamps += n;
+  var newReward = null;
+  for (var i=0;i<D.rewards.length;i++){
+    var r = D.rewards[i];
+    if (before < r.need && D.stamps >= r.need) newReward = r;
+  }
+  var em = STAMP_POOL[(D.stamps - 1) % STAMP_POOL.length];
+  if (newReward) showOvl('🎁', 'やったー！「' + newReward.title + ' ' + newReward.emoji + '」ゲット！', true);
+  else if (big) showOvl('👑', 'ぜんぶ おわった！すごすぎる！', true);
+  else showOvl(em, 'スタンプ ゲット！（' + D.stamps + 'こめ）', false);
+  chime(newReward || big);
+}
+function nextReward(){
+  var best = null;
+  for (var i=0;i<D.rewards.length;i++){
+    var r = D.rewards[i];
+    if (r.need > D.stamps && (!best || r.need < best.need)) best = r;
+  }
+  return best;
+}
+
+/* ---------- 演出 ---------- */
+var ovlTimer = null;
+function showOvl(emoji, msg, confetti){
+  var o = document.getElementById('ovl');
+  o.innerHTML = '<div class="big">'+emoji+'</div><div class="msg">'+esc(msg)+'</div>';
+  o.classList.add('show');
+  if (confetti) spawnConfetti();
+  clearTimeout(ovlTimer);
+  ovlTimer = setTimeout(hideOvl, confetti ? 2400 : 1500);
+}
+function hideOvl(){ document.getElementById('ovl').classList.remove('show'); }
+function spawnConfetti(){
+  var ems = ['🎉','⭐','🌸','🍬','✨'];
+  for (var i=0;i<14;i++){
+    var s = document.createElement('span');
+    s.className = 'cf';
+    s.textContent = ems[i % ems.length];
+    s.style.left = Math.random()*95 + 'vw';
+    s.style.animationDelay = (Math.random()*0.5) + 's';
+    document.body.appendChild(s);
+    (function(sp){ setTimeout(function(){ sp.remove(); }, 2600); })(s);
+  }
+}
+function chime(fanfare){
+  try {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    var a = new AC();
+    var notes = fanfare ? [[523,0],[659,.12],[784,.24],[1047,.38]] : [[659,0],[880,.12]];
+    for (var i=0;i<notes.length;i++){
+      var o = a.createOscillator(), g = a.createGain();
+      o.type = 'sine'; o.frequency.value = notes[i][0];
+      var st = a.currentTime + notes[i][1];
+      g.gain.setValueAtTime(.18, st);
+      g.gain.exponentialRampToValueAtTime(.001, st + .3);
+      o.connect(g); g.connect(a.destination);
+      o.start(st); o.stop(st + .32);
+    }
+  } catch(e){}
+}
+
+/* ---------- カレンダー ---------- */
+function clampCal(){
+  var s = parseYmd(D.settings.start), e = parseYmd(D.settings.end);
+  var min = s.getFullYear()*12 + s.getMonth(), max = e.getFullYear()*12 + e.getMonth();
+  var cur = calY*12 + (calM-1);
+  if (cur < min){ calY = s.getFullYear(); calM = s.getMonth()+1; }
+  if (cur > max){ calY = e.getFullYear(); calM = e.getMonth()+1; }
+}
+function moveCal(dir){ calM += dir; if (calM < 1){ calM = 12; calY--; } if (calM > 12){ calM = 1; calY++; } clampCal(); setTab('cal'); }
+function buildMonth(y, m){
+  var first = new Date(y, m-1, 1);
+  var days = new Date(y, m, 0).getDate();
+  var cells = [];
+  for (var i=0;i<first.getDay();i++) cells.push(null);
+  for (var d=1;d<=days;d++) cells.push(d);
+  while (cells.length % 7 !== 0) cells.push(null);
+  return cells;
+}
+function eventsOn(ds){ var r=[]; for (var i=0;i<D.events.length;i++) if (D.events[i].date===ds) r.push(D.events[i]); return r; }
+function dayMark(ds){
+  var arr = D.log[ds] || [];
+  if (D.daily.length && arr.length >= D.daily.length) return '💮';
+  if (arr.length > 0) return '🔸';
+  return '';
+}
+function viewCal(){
+  var h = '<div class="cal-head">'
+        + '<button onclick="moveCal(-1)">◀</button>'
+        + '<span class="m">' + calY + 'ねん ' + calM + 'がつ</span>'
+        + '<button onclick="moveCal(1)">▶</button></div>';
+  h += '<table class="cal"><tr><th class="su">にち</th><th>げつ</th><th>か</th><th>すい</th><th>もく</th><th>きん</th><th class="sa">ど</th></tr>';
+  var cells = buildMonth(calY, calM);
+  var t = todayStr();
+  for (var i=0;i<cells.length;i++){
+    if (i % 7 === 0) h += '<tr>';
+    var d = cells[i];
+    if (d === null){ h += '<td class="out"></td>'; }
+    else {
+      var ds = calY + '-' + pad(calM) + '-' + pad(d);
+      var inRange = ds >= D.settings.start && ds <= D.settings.end;
+      var evs = eventsOn(ds);
+      var mk = dayMark(ds);
+      var cls = (inRange ? '' : 'out') + (ds === t ? ' today' : '');
+      var body = '<span class="d">' + d + '</span>';
+      if (mk) body += '<span class="mk">' + mk + '</span>';
+      for (var k=0;k<evs.length && k<2;k++) body += '<span class="mk">' + evs[k].emoji + '</span>';
+      h += '<td class="' + cls + '" onclick="dayInfo(\'' + ds + '\')">' + body + '</td>';
+    }
+    if (i % 7 === 6) h += '</tr>';
+  }
+  h += '</table>';
+  h += '<div class="card"><b>みかた</b><div class="p-note">💮 まいにちの しゅくだいが ぜんぶ できた ひ<br>🔸 すこし できた ひ／えもじ＝おたのしみ イベント</div></div>';
+  h += '<div class="sec-title">🎪 これからの イベント</div>';
+  var up = D.events.slice().sort(function(a,b){ return a.date < b.date ? -1 : 1; });
+  var any = false;
+  for (var j=0;j<up.length;j++){
+    if (up[j].date >= t){
+      any = true;
+      h += '<div class="card task"><span class="emoji">' + up[j].emoji + '</span><div class="name">' + esc(up[j].title)
+         + '<div class="meta">' + jpDate(up[j].date) + '（あと ' + daysBetween(t, up[j].date) + 'にち）</div></div></div>';
+    }
+  }
+  if (!any) h += '<div class="card">よていは まだ ないよ</div>';
+  return h;
+}
+function dayInfo(ds){
+  var evs = eventsOn(ds);
+  var arr = D.log[ds] || [];
+  var lines = '';
+  for (var i=0;i<evs.length;i++) lines += '<div class="p-item"><span>' + evs[i].emoji + '</span><span class="t">' + esc(evs[i].title) + '</span></div>';
+  var names = [];
+  for (var j=0;j<D.daily.length;j++) if (arr.indexOf(D.daily[j].id) >= 0) names.push(D.daily[j].emoji + ' ' + D.daily[j].title);
+  if (names.length) lines += '<div class="p-note">できた しゅくだい：<br>' + names.join('<br>') + '</div>';
+  if (!lines) lines = '<div class="p-note">この ひの きろくは まだ ないよ</div>';
+  openModal('<h3>' + jpDate(ds) + '</h3>' + lines
+    + '<div class="m-btns"><button class="btn btn-cancel" onclick="closeModal()">とじる</button></div>');
+}
+
+/* ---------- スタンプちょう ---------- */
+function viewStamps(){
+  var nr = nextReward();
+  var total = nr ? nr.need : Math.max(D.stamps, 10);
+  var h = '<div class="card center"><div>いままでの スタンプ</div><div class="big-num">' + D.stamps + ' こ</div>'
+        + (nr ? '<div>あと <b>' + (nr.need - D.stamps) + 'こ</b> で 「' + esc(nr.title) + ' ' + nr.emoji + '」！</div>'
+              : '<div>ごほうび ぜんぶ ゲットしたよ！🎉</div>')
+        + '</div>';
+  h += '<div class="stamp-grid">';
+  var shown = Math.max(total, Math.min(D.stamps, 100));
+  for (var i=1;i<=shown;i++){
+    if (i <= D.stamps) h += '<div class="slot">' + STAMP_POOL[(i-1) % STAMP_POOL.length] + '</div>';
+    else if (nr && i === nr.need) h += '<div class="slot goal">' + nr.emoji + '</div>';
+    else h += '<div class="slot empty">' + i + '</div>';
+  }
+  h += '</div>';
+  return h;
+}
+
+/* ---------- ごほうび ---------- */
+function viewRewards(){
+  var h = '<div class="sec-title">🎁 スタンプを ためて ゲットしよう</div>';
+  var rs = D.rewards.slice().sort(function(a,b){ return a.need - b.need; });
+  for (var i=0;i<rs.length;i++){
+    var r = rs[i], got = D.stamps >= r.need;
+    h += '<div class="card rw ' + (got ? '' : 'locked') + '"><span class="emoji">' + r.emoji + '</span>'
+       + '<div class="name" style="flex:1;font-size:18px;font-weight:bold">' + esc(r.title)
+       + '<div class="st">スタンプ ' + r.need + 'こ</div></div>'
+       + (got ? '<span class="got">ゲット！🎉</span>' : '<span class="st">あと ' + (r.need - D.stamps) + 'こ</span>')
+       + '</div>';
+  }
+  return h;
+}
+
+/* ---------- 保護者モード ---------- */
+function openPin(){
+  if (curTab === 'parent'){ setTab('today'); return; }
+  openModal('<h3>保護者メニュー</h3><label>PIN（初期値 1234）</label><input id="pinIn" type="password" inputmode="numeric" maxlength="8">'
+    + '<div class="m-btns"><button class="btn btn-cancel" onclick="closeModal()">キャンセル</button>'
+    + '<button class="btn btn-ok" onclick="checkPin()">ひらく</button></div>');
+  setTimeout(function(){ var el = document.getElementById('pinIn'); if (el) el.focus(); }, 50);
+}
+function checkPin(){
+  var v = document.getElementById('pinIn').value;
+  if (v === D.settings.pin){ closeModal(); setTab('parent'); }
+  else alert('PINがちがいます');
+}
+/* クラウド同期カード（保護者モード内・漢字可） */
+function parentCloudCard(){
+  if (!hasConfig()){
+    return '<div class="card"><b>クラウド同期</b>'
+      + '<div class="p-note">この端末では クラウド同期は設定されていません（ローカルモードで動作中）。'
+      + '複数の端末でデータを共有するには、setup-guide.md の手順に従って Firebase を設定してください。</div></div>';
+  }
+  var statusMap = { local:'🏠 ローカル', connecting:'☁️ どうき中', synced:'✅ ほぞんした', offline:'📴 オフライン' };
+  var statusLabel = statusMap[Cloud.status] || '🏠 ローカル';
+  var h = '<div class="card"><b>クラウド同期</b>';
+  if (isLocalOnly() || !isValidFamilyCode(getFamilyCode())){
+    h += '<div class="p-item"><span class="t">接続モード：🏠 ローカルモード（この端末だけ）</span></div>'
+       + '<div class="p-note">クラウド同期を始めると、ゆりちゃんのiPadと保護者の端末で同じデータを共有できます。</div>'
+       + '<div class="m-btns"><button class="btn btn-ok" onclick="showFamilyGate()">クラウド同期を始める</button></div>'
+       + '</div>';
+    return h;
+  }
+  var code = getFamilyCode();
+  h += '<div class="p-item"><span class="t">接続モード：☁️ クラウド同期モード</span></div>'
+     + '<div class="p-item"><span class="t">同期の状態：' + statusLabel + '</span></div>'
+     + '<div class="p-item"><span class="t">家族コード：<code style="font-size:15px;letter-spacing:1px">' + esc(code) + '</code></span>'
+     + '<button class="p-edit" onclick="copyFamilyCode()">コピー</button></div>'
+     + '<div class="p-note">このコードを もう一方の端末の「コードを もっている（いれる）」で入力すると、同じデータを共有できます。<br>※ 家族コードは家族以外には教えないでください。</div>'
+     + '<div class="m-btns"><button class="btn btn-cancel" onclick="changeFamily()">家族コードを変更（別の家族に接続）</button></div>'
+     + '</div>';
+  return h;
+}
+function copyFamilyCode(){
+  var code = getFamilyCode();
+  if (!code) return;
+  var ok = function(){ alert('コピーしました：\n' + code); };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(code).then(ok, function(){ copyFallback(code); });
+    } else { copyFallback(code); }
+  } catch(e){ copyFallback(code); }
+}
+function copyFallback(code){
+  openModal('<h3>家族コード</h3><div class="p-note">下の欄を長押し（または選択）してコピーしてください。</div>'
+    + '<input id="fcCopy" type="text" readonly value="' + esc(code) + '">'
+    + '<div class="m-btns"><button class="btn btn-cancel" onclick="closeModal()">とじる</button></div>');
+  setTimeout(function(){ var el=document.getElementById('fcCopy'); if(el){ el.focus(); el.select(); } }, 50);
+}
+function changeFamily(){
+  openModal('<h3>家族コードを変更</h3>'
+    + '<div class="p-note">別の家族コードに接続します。現在の同期を停止し、新しいコードのデータに切り替わります。</div>'
+    + '<label>新しい家族コード</label>'
+    + '<input id="fcChg" type="text" autocapitalize="none" autocomplete="off" spellcheck="false" placeholder="yuri-xxxx-xxxx-xxxx">'
+    + '<div class="m-btns"><button class="btn btn-cancel" onclick="closeModal()">キャンセル</button>'
+    + '<button class="btn btn-ok" onclick="changeFamilyOk()">接続する</button></div>');
+  setTimeout(function(){ var el=document.getElementById('fcChg'); if(el) el.focus(); }, 50);
+}
+function changeFamilyOk(){
+  var v = (document.getElementById('fcChg').value || '').trim().toLowerCase();
+  if (!isValidFamilyCode(v)){ alert('コードの形式が正しくありません（例 yuri-k8x2-p4mq-7d3n）'); return; }
+  try { Cloud.stop(); } catch(e){}
+  Cloud.migrated = false;
+  setFamilyCode(v);
+  closeModal();
+  setSyncStatus('connecting');
+  setTab('parent');
+  try { Cloud.start(); } catch(e){ console.warn(e); }
+}
+function viewParent(){
+  var h = '<div class="sec-title">👨‍👩‍👧 保護者モード</div>';
+  h += '<div class="card"><b>基本設定</b>'
+     + '<div class="p-item"><span class="t">お子さんの名前：' + esc(D.settings.childName) + '</span>'
+     + '<span class="t">期間：' + D.settings.start + ' 〜 ' + D.settings.end + '</span>'
+     + '<button class="p-edit" onclick="editSettings()">編集</button></div>'
+     + '<div class="p-note">※ この画面の入力は漢字表記です。お子さん向け画面はひらがなで表示されます。</div></div>';
+
+  h += parentCloudCard();
+
+  h += '<div class="card"><b>毎日の宿題</b>';
+  for (var i=0;i<D.daily.length;i++){
+    var d = D.daily[i];
+    h += '<div class="p-item"><span>' + d.emoji + '</span><span class="t">' + esc(d.title) + '</span>'
+       + '<button class="p-edit" onclick="editDaily(\'' + d.id + '\')">編集</button>'
+       + '<button class="p-del" onclick="delDaily(\'' + d.id + '\')">削除</button></div>';
+  }
+  h += '<button class="p-add" onclick="editDaily()">＋ 毎日の宿題を追加</button></div>';
+
+  h += '<div class="card"><b>大きな宿題（回数もの）</b>';
+  for (var j=0;j<D.projects.length;j++){
+    var p = D.projects[j];
+    h += '<div class="p-item"><span>' + p.emoji + '</span><span class="t">' + esc(p.title) + '（' + p.done + '/' + p.target + '・〆' + jpDateShort(p.due) + '）</span>'
+       + '<button class="p-edit" onclick="editProject(\'' + p.id + '\')">編集</button>'
+       + '<button class="p-del" onclick="delProject(\'' + p.id + '\')">削除</button></div>';
+  }
+  h += '<button class="p-add" onclick="editProject()">＋ 大きな宿題を追加</button></div>';
+
+  h += '<div class="card"><b>家族イベント</b>';
+  var evs = D.events.slice().sort(function(a,b){ return a.date < b.date ? -1 : 1; });
+  for (var k=0;k<evs.length;k++){
+    var e = evs[k];
+    h += '<div class="p-item"><span>' + e.emoji + '</span><span class="t">' + e.date + '　' + esc(e.title) + '</span>'
+       + '<button class="p-edit" onclick="editEvent(\'' + e.id + '\')">編集</button>'
+       + '<button class="p-del" onclick="delEvent(\'' + e.id + '\')">削除</button></div>';
+  }
+  h += '<button class="p-add" onclick="editEvent()">＋ イベントを追加</button></div>';
+
+  h += '<div class="card"><b>ごほうび（スタンプ数で解放）</b>';
+  var rs = D.rewards.slice().sort(function(a,b){ return a.need - b.need; });
+  for (var m=0;m<rs.length;m++){
+    var r = rs[m];
+    h += '<div class="p-item"><span>' + r.emoji + '</span><span class="t">' + r.need + 'こ：' + esc(r.title) + '</span>'
+       + '<button class="p-edit" onclick="editReward(\'' + r.id + '\')">編集</button>'
+       + '<button class="p-del" onclick="delReward(\'' + r.id + '\')">削除</button></div>';
+  }
+  h += '<button class="p-add" onclick="editReward()">＋ ごほうびを追加</button></div>';
+
+  var dataNote = cloudActive()
+    ? 'データはクラウド（Firestore）に保存され、家族の端末と自動で同期されます。'
+    : 'データはこの端末のブラウザ内に保存されます（ローカルモード）。';
+  h += '<div class="card"><b>データ管理</b>'
+     + '<div class="p-note">現在のスタンプ数：' + D.stamps + ' こ（' + dataNote + '）</div>'
+     + '<div class="m-btns">'
+     + '<button class="btn btn-cancel" onclick="exportData()">書き出し</button>'
+     + '<button class="btn btn-cancel" onclick="importData()">読み込み</button>'
+     + '<button class="btn btn-danger" onclick="resetAll()">全リセット</button></div></div>';
+
+  h += '<div class="m-btns"><button class="btn btn-ok" onclick="setTab(\'today\')">こども画面にもどる</button></div>';
+  return h;
+}
+
+/* ---------- 汎用モーダルフォーム ---------- */
+function openModal(html){ document.getElementById('modalBox').innerHTML = html; document.getElementById('modal').classList.add('show'); }
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+var EMOJIS = ['📖','📝','✏️','🔢','🎨','🔬','📚','🌻','🎹','🏊','⚽','🏮','🎆','🚗','✈️','🍦','🍰','🎡','🧸','🎮','💮','⭐'];
+function emojiRow(inputId){
+  var h = '<div class="emoji-row">';
+  for (var i=0;i<EMOJIS.length;i++) h += '<button type="button" onclick="document.getElementById(\'' + inputId + '\').value=\'' + EMOJIS[i] + '\'">' + EMOJIS[i] + '</button>';
+  return h + '</div>';
+}
+function formModal(title, fields, onOk){
+  var h = '<h3>' + esc(title) + '</h3>';
+  for (var i=0;i<fields.length;i++){
+    var f = fields[i];
+    h += '<label>' + esc(f.label) + '</label>';
+    h += '<input id="f_' + f.key + '" type="' + (f.type || 'text') + '" value="' + esc(f.value == null ? '' : f.value) + '"' + (f.attrs || '') + '>';
+    if (f.key === 'emoji') h += emojiRow('f_emoji');
+  }
+  h += '<div class="m-btns"><button class="btn btn-cancel" onclick="closeModal()">キャンセル</button>'
+     + '<button class="btn btn-ok" id="fOk">保存</button></div>';
+  openModal(h);
+  document.getElementById('fOk').onclick = function(){
+    var vals = {};
+    for (var i=0;i<fields.length;i++) vals[fields[i].key] = document.getElementById('f_' + fields[i].key).value.trim();
+    if (onOk(vals) !== false){ closeModal(); save(); setTab('parent'); }
+  };
+}
+function findById(arr, id){ for (var i=0;i<arr.length;i++) if (arr[i].id === id) return arr[i]; return null; }
+function removeById(arr, id){ for (var i=0;i<arr.length;i++) if (arr[i].id === id){ arr.splice(i,1); return; } }
+
+/* ---------- CRUD ---------- */
+function editSettings(){
+  formModal('基本設定', [
+    { key:'name', label:'お子さんの名前（ひらがな推奨）', value:D.settings.childName },
+    { key:'start', label:'夏休み開始日', type:'date', value:D.settings.start },
+    { key:'end', label:'夏休み終了日', type:'date', value:D.settings.end },
+    { key:'pin', label:'保護者PIN（数字4〜8桁）', value:D.settings.pin, attrs:' inputmode="numeric" maxlength="8"' }
+  ], function(v){
+    if (!v.name || !v.start || !v.end || v.start > v.end){ alert('入力内容を確認してください'); return false; }
+    if (!/^[0-9]{4,8}$/.test(v.pin)){ alert('PINは数字4〜8桁で入力してください'); return false; }
+    D.settings.childName = v.name; D.settings.start = v.start; D.settings.end = v.end; D.settings.pin = v.pin;
+    document.getElementById('appTitle').textContent = '🌻 ' + v.name + 'ちゃんの なつやすみ だいさくせん 🌻';
+    clampCal();
+  });
+}
+function editDaily(id){
+  var d = id ? findById(D.daily, id) : null;
+  formModal(d ? '毎日の宿題を編集' : '毎日の宿題を追加', [
+    { key:'title', label:'名前（ひらがな推奨）', value:d ? d.title : '' },
+    { key:'emoji', label:'アイコン（下から選択可）', value:d ? d.emoji : '📖' }
+  ], function(v){
+    if (!v.title){ alert('名前を入力してください'); return false; }
+    if (d){ d.title = v.title; d.emoji = v.emoji || '📖'; }
+    else D.daily.push({ id:uid(), title:v.title, emoji:v.emoji || '📖' });
+  });
+}
+function delDaily(id){ if (confirm('削除しますか？（過去の達成記録は残ります）')){ removeById(D.daily, id); save(); setTab('parent'); } }
+function editProject(id){
+  var p = id ? findById(D.projects, id) : null;
+  formModal(p ? '大きな宿題を編集' : '大きな宿題を追加', [
+    { key:'title', label:'名前（ひらがな推奨）', value:p ? p.title : '' },
+    { key:'emoji', label:'アイコン（下から選択可）', value:p ? p.emoji : '📝' },
+    { key:'target', label:'目標回数（例：プリント20枚→20）', type:'number', value:p ? p.target : 10, attrs:' min="1"' },
+    { key:'done', label:'現在の達成数', type:'number', value:p ? p.done : 0, attrs:' min="0"' },
+    { key:'due', label:'締切日', type:'date', value:p ? p.due : D.settings.end }
+  ], function(v){
+    var tg = parseInt(v.target, 10), dn = parseInt(v.done, 10);
+    if (!v.title || !(tg > 0) || !(dn >= 0) || !v.due){ alert('入力内容を確認してください'); return false; }
+    dn = Math.min(dn, tg);
+    if (p){ p.title = v.title; p.emoji = v.emoji || '📝'; p.target = tg; p.done = dn; p.due = v.due; }
+    else D.projects.push({ id:uid(), title:v.title, emoji:v.emoji || '📝', target:tg, done:dn, due:v.due });
+  });
+}
+function delProject(id){ if (confirm('削除しますか？')){ removeById(D.projects, id); save(); setTab('parent'); } }
+function editEvent(id){
+  var e = id ? findById(D.events, id) : null;
+  formModal(e ? 'イベントを編集' : 'イベントを追加', [
+    { key:'title', label:'イベント名（ひらがな推奨）', value:e ? e.title : '' },
+    { key:'date', label:'日付', type:'date', value:e ? e.date : todayStr() },
+    { key:'emoji', label:'アイコン（下から選択可）', value:e ? e.emoji : '🎪' }
+  ], function(v){
+    if (!v.title || !v.date){ alert('入力内容を確認してください'); return false; }
+    if (e){ e.title = v.title; e.date = v.date; e.emoji = v.emoji || '🎪'; }
+    else D.events.push({ id:uid(), title:v.title, date:v.date, emoji:v.emoji || '🎪' });
+  });
+}
+function delEvent(id){ if (confirm('削除しますか？')){ removeById(D.events, id); save(); setTab('parent'); } }
+function editReward(id){
+  var r = id ? findById(D.rewards, id) : null;
+  formModal(r ? 'ごほうびを編集' : 'ごほうびを追加', [
+    { key:'title', label:'ごほうび名（ひらがな推奨）', value:r ? r.title : '' },
+    { key:'need', label:'必要スタンプ数', type:'number', value:r ? r.need : 10, attrs:' min="1"' },
+    { key:'emoji', label:'アイコン（下から選択可）', value:r ? r.emoji : '🍦' }
+  ], function(v){
+    var nd = parseInt(v.need, 10);
+    if (!v.title || !(nd > 0)){ alert('入力内容を確認してください'); return false; }
+    if (r){ r.title = v.title; r.need = nd; r.emoji = v.emoji || '🍦'; }
+    else D.rewards.push({ id:uid(), title:v.title, need:nd, emoji:v.emoji || '🍦' });
+  });
+}
+function delReward(id){ if (confirm('削除しますか？')){ removeById(D.rewards, id); save(); setTab('parent'); } }
+
+/* ---------- データ管理 ---------- */
+function exportData(){
+  openModal('<h3>データ書き出し</h3><div class="p-note">以下をコピーして保管してください（機種変更やクラウド移行時に使えます）。</div>'
+    + '<textarea id="expTa" readonly>' + esc(JSON.stringify(D)) + '</textarea>'
+    + '<div class="m-btns"><button class="btn btn-cancel" onclick="closeModal()">とじる</button></div>');
+}
+function importData(){
+  openModal('<h3>データ読み込み</h3><div class="p-note">書き出したJSONを貼り付けてください（現在のデータは上書きされます）。</div>'
+    + '<textarea id="impTa"></textarea>'
+    + '<div class="m-btns"><button class="btn btn-cancel" onclick="closeModal()">キャンセル</button>'
+    + '<button class="btn btn-ok" onclick="doImport()">読み込む</button></div>');
+}
+function doImport(){
+  try {
+    var d = JSON.parse(document.getElementById('impTa').value);
+    if (!d.settings || !d.daily || !d.projects) throw new Error('bad');
+    D = d; save(); closeModal(); setTab('parent'); alert('読み込みました');
+  } catch(e){ alert('JSONの形式が正しくありません'); }
+}
+function resetAll(){
+  if (!confirm('すべてのデータを初期状態に戻します。よろしいですか？')) return;
+  if (!confirm('本当にリセットしますか？（元に戻せません）')) return;
+  D = seed(); save();
+  /* クラウドモードではクラウド側にも即時反映 */
+  if (cloudActive()){ try { Cloud.push(D); } catch(e){ console.warn(e); } }
+  setTab('parent');
+}
+
+/* ---------- 起動（ブラウザのみ） ---------- */
+if (typeof document !== 'undefined' && document.getElementById && document.getElementById('view')) init();
+</script>
+</body>
+</html>
